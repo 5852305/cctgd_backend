@@ -30,8 +30,12 @@ class CategoryRequest extends Request
                case 'PUT':
                case 'PATCH':
                {
-                   return [
 
+                   return [
+                       'name'=>'required|unique:categories,name,'.$this->route('category'),
+                       'pic'=>'required',
+                       'head_pic' => 'required',
+                       'detail' => 'required',
                    ];
                }
                case 'GET':

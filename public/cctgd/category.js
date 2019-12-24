@@ -4,9 +4,10 @@ layui.use(['form', 'table','upload'], function () {
         table = layui.table,
         upload = layui.upload;
     table.render({
-        elem: '#'+CLASS+'-table',
-        url: api.category.list,
-        cols: [[
+        elem: '#table',
+        url: api.category.list
+        ,toolbar: '#toolbar' //开启头部工具栏，并为其绑定左侧模板
+        ,cols: [[
             {type: "checkbox", width: 50, fixed: "left"},
             {field: 'id', width: 80, title: 'ID', sort: true},
             {field: 'name',  title: '分类名', sort: true,edit: 'text',},
@@ -18,12 +19,16 @@ layui.use(['form', 'table','upload'], function () {
                 }},
             {field: 'created_at', title: '添加时间', sort: true},
             {field: 'updated_at',  title: '更新时间', sort: true},
-            {title: '操作', templet: '#'+CLASS+'-table-bar', fixed: "right", align: "center"}
+            {title: '操作', templet: '#table-bar', fixed: "right", align: "center"}
         ]],
+        done: function (res, curr, count) {
+            window.tableList=res.data;
+        },
         limits: [10, 15, 20, 25, 50, 100],
         limit: 15,
         page: true
         ,parseData: function(res){ //将原始数据解析成 table 组件所规定的数据
+
         return {
             "code": res.code, //解析接口状态
             "msg": res.msg, //解析提示文本
@@ -32,7 +37,24 @@ layui.use(['form', 'table','upload'], function () {
         };
     }
     });
+    //头工具栏事件
+    table.on('toolbar(table)', function(obj){
+        var checkStatus = table.checkStatus(obj.config.id);
+        switch(obj.event){
+            case 'add':
+                add_edit();
+                break;
+            case 'del':
+                var data = checkStatus.data;
+                layer.confirm('真的删除行么', function (index) {
+                    del(_.map(data, 'id'),table);
+                    layer.close(index);
+                    table.reload('table')
+                });
+                break;
 
+        };
+    });
     // 监听搜索操作
     form.on('submit(data-search-btn)', function (data) {
         var result = JSON.stringify(data.field);
@@ -41,7 +63,7 @@ layui.use(['form', 'table','upload'], function () {
         });
 
         //执行搜索重载
-        table.reload(CLASS+'-table', {
+        table.reload('table', {
             page: {
                 curr: 1
             }
@@ -67,25 +89,26 @@ layui.use(['form', 'table','upload'], function () {
         }
     });
 
-
-
-
-    // 监听添加操作
-    $(".data-add-btn").on("click", function () {
-        add_edit();
-    });
-    form.on("submit("+CLASS+"-submit)",function (data) {
+    form.on("submit(submit)",function (data) {
         console.log(data.field);
-       $.post(api.category.create,data.field,function (res) {
-           console.log(res);
-           if(res.code == 0){
-               layer.msg(res.msg,{icon:1});
-               table.reload(CLASS+'-table')
-               layer.closeAll();
-           }else{
-               layer.msg(res.msg,{icon:2});
-           }
-       })
+        var method ="post";
+        var url=api.category.create;
+        if(data.field.id != ""){
+            method="put";
+            url=api.category.update.replace(":id",data.field.id)
+        }
+      axios({
+          method:method,
+          url:url,
+          data:data.field
+      }).then(function(res){
+          console.log(res);
+          layer.msg(res.data.msg,{icon:1});
+          table.reload('table')
+          layer.closeAll();
+      }).catch(function(err){
+          error(err);
+      })
         return false;
     });
     function add_edit(data= null){
@@ -93,17 +116,17 @@ layui.use(['form', 'table','upload'], function () {
         var title =data  == null ? '添加分类' : "编辑-"+data.name;
         layer.open({
             type: 1,
-            id:CLASS+"-add-layer"
+            id:"add-layer"
             ,title: title
             ,area: ['900px', '750px']
             ,shade: [0.8, '#393D49']
             ,anim: 1
             ,maxmin: true
             ,btnAlign:"c"
-            ,content: $("#"+CLASS+"-add").html()
+            ,content: $("#add").html()
             ,btn: [btn, '取消']
             ,yes: function(index,layero){
-                var submitID=CLASS+"-submit"
+                var submitID="submit"
                  ,submit =layero.find("#"+submitID)
                  submit.click();
                 // layer.close(index);
@@ -112,17 +135,28 @@ layui.use(['form', 'table','upload'], function () {
                 layer.close(index);
             } ,success: function(layero){
                 layer.ready(function(){
+                    var html=`<option value="0">父级分类</option>`;
+                    window.tableList.forEach(function (item,index) {
+                        html+=`<option value="${item.id}">${item.name}</option>`
+                    })
+                    $("select[name='parent_id']").html(html);
+                    if(data !=null){
+                        form.val('form', data);
+                        $('#preview').attr('src',"/storage/"+ data.pic); //图片链接（base64）
+                        $('#preview2').attr('src',"/storage/"+ data.head_pic); //图片链接（base64）
+                    }
+
                     form.render();
                     //封面上传
                     var uploadInst = upload.render({
-                        elem: '#'+CLASS+'-cover-upload'
+                        elem: '#cover-upload'
                         ,url: api.upload.image
                         ,exts: 'jpg|png|jpeg'
                         ,field:"image"
                         ,before: function(obj){
                             //预读本地文件示例，不支持ie8
                             obj.preview(function(index, file, result){
-                                $('#'+CLASS+'-preview').attr('src', result); //图片链接（base64）
+                                $('#preview').attr('src', result); //图片链接（base64）
                             });
                         }
                         ,done: function(res){
@@ -131,28 +165,28 @@ layui.use(['form', 'table','upload'], function () {
                                 return layer.msg('上传失败');
                             }
                             layer.msg('封面上传成功');
-                            $('#'+CLASS+'-cover').val(res.data.url)
+                            $('#cover').val(res.data.url)
                             //上传成功
                         }
                         ,error: function(){
                             //演示失败状态，并实现重传demo-reload
-                            var demoText = $('#'+CLASS+'-cover-text');
-                            demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs '+CLASS+'-cover-reload">重试</a>');
-                            demoText.find('.'+CLASS+'-cover-reload').on('click', function(){
+                            var demoText = $('cover-text');
+                            demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs cover-reload">重试</a>');
+                            demoText.find('.cover-reload').on('click', function(){
                                 uploadInst.upload();
                             });
                         }
                     });
 
                     var uploadInst2 = upload.render({
-                        elem: '#'+CLASS+'-cover-upload2'
+                        elem: '#cover-upload2'
                         ,url: api.upload.image
                         ,exts: 'jpg|png|jpeg'
                         ,field:"image"
                         ,before: function(obj){
                             //预读本地文件示例，不支持ie8
                             obj.preview(function(index, file, result){
-                                $('#'+CLASS+'-preview2').attr('src', result); //图片链接（base64）
+                                $('#preview2').attr('src', result); //图片链接（base64）
                             });
                         }
                         ,done: function(res){
@@ -162,13 +196,13 @@ layui.use(['form', 'table','upload'], function () {
                             }
                             //上传成功
                             layer.msg('副封面上传成功');
-                            $('#'+CLASS+'-cover2').val(res.data.url)
+                            $('#cover2').val(res.data.url)
                         }
                         ,error: function(){
                             //演示失败状态，并实现重传demo-reload
-                            var demoText = $('#'+CLASS+'-cover-text2');
-                            demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs '+CLASS+'-cover-reload2">重试</a>');
-                            demoText.find('.'+CLASS+'-cover-reload2').on('click', function(){
+                            var demoText = $('.cover-text2');
+                            demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs cover-reload2">重试</a>');
+                            demoText.find('.cover-reload2').on('click', function(){
                                 uploadInst2.upload();
                             });
                         }
@@ -190,13 +224,14 @@ layui.use(['form', 'table','upload'], function () {
         console.log(obj)
     });
 
-    table.on('tool(currentTableFilter)', function (obj) {
+    table.on('tool(table)', function (obj) {
         var data = obj.data;
         if (obj.event === 'edit') {
-            layer.alert('编辑行：<br>' + JSON.stringify(data))
+            add_edit(data);
         } else if (obj.event === 'delete') {
             layer.confirm('真的删除行么', function (index) {
-                obj.del();
+                del([data.id],obj);
+
                 layer.close(index);
             });
         }

@@ -21,6 +21,7 @@ class CreateCategoriesTable extends Migration
             $table->string("head_pic")->comment("副封面");
             $table->string("detail")->comment("描述");
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

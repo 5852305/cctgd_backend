@@ -29,8 +29,20 @@ class CategoryController extends BaseController
         return $category ? success("添加成功") : error("添加失败");
     }
 
-    public function update(Request $request)
+    public function update(CategoryRequest $request, $id)
     {
+        $category=$this->category->findOrFail($id);
+        $category->update($request->all());
+        return $category ? success("修改成功",$category) : error("修改失败");
+    }
 
+    /**
+     * @param Request $request
+     * @return $this
+     */
+    public function destroy(Request $request,$id)
+    {
+        $del= $this->category->whereIn('id',explode(",",$id))->delete();
+        return $del ? success("删除成功") : error("删除失败");
     }
 }

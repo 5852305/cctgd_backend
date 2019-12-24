@@ -19,5 +19,5 @@ $api->version('v1', [
 ], function($api) {
     $api->get('/init','InitController@index');
     $api->POST('/uploadImages', 'UploadController@uploadImages');
-    $api->resource("category","CategoryController",["only"=>["index","store","update"]]);
+    $api->resource("category","CategoryController",["only"=>["index","store","update","destroy"]]);
 });
