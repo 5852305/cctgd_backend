@@ -107,5 +107,5 @@
     </script>
 @endsection
 @section("js")
-    <script src="{{ asset("cctgd/{{modelNamePluralLowerCase}}.js") }}?v=123" charset="utf-8"></script>
+    <script src="{{ asset("cctgd/banners.js") }}?v=123" charset="utf-8"></script>
  @endsection

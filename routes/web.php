@@ -17,5 +17,17 @@ Route::group(['namespace' => 'Admin', 'prefix' => env('ROUTE_FREFIX'), 'as' => '
     $router->get('/dashboard', 'IndexController@dashboard')->name("dashboard");
     $router->get('/category', 'CategoryController@index')->name("category.index");
 
-   /*-*/
+
+
+
+
+   /*-----------------------------轮播图-----------------------------*/
+   $router->resource('banners', 'BannerController', ['only' => ['index', 'create', 'store', 'update', 'edit', 'destroy']]);
+
+   /*-----------------------------轮播图-----------------------------*/
+   $router->resource('banners', 'BannerController', ['only' => ['index', 'create', 'store', 'update', 'edit', 'destroy']]);
+
+   /*-----------------------------轮播图-----------------------------*/
+   $router->resource('banners', 'BannerController', ['only' => ['index', 'create', 'store', 'update', 'edit', 'destroy']]);
+/*-*/
 });

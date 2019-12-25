@@ -42,5 +42,24 @@ var api = {
     },
     "upload": {
         'image':'/api/uploadImages',//上传图片 post
-    }
+    },
+
+
+
+   /*-----------------------------轮播图-----------------------------*/
+'banner':{
+'list':'/api/banner', //轮播图列表 get
+'info':'/api/banner/:id',//轮播图.详情 get
+'create':'/api/banner',//轮播图.新增 post
+'update':'/api/banner/:id',//轮播图.修改 put
+'update':'/api/banner/:ids',//轮播图.删除 get
+},
+   /*-----------------------------轮播图-----------------------------*/
+'banners':{
+'list':'/api/banners', //轮播图列表 get
+'info':'/api/banners/:id',//轮播图.详情 get
+'create':'/api/banners',//轮播图.新增 post
+'update':'/api/banners/:id',//轮播图.修改 put
+'update':'/api/banners/:ids',//轮播图.删除 get
+},/*-*/
 }

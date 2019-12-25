@@ -43,8 +43,10 @@ class crud extends Command
         $this->model($name,$title);
         $this->request($name,$title);
         $this->viewIndex($name);
-        $this->viewCreateAndEdit($name);
-        $this->viewForm($name);
+        $this->Api($name,$title);
+        $this->ApiJs($name,$title);
+        $this->Js($name,$title);
+        $this->Apicontroller($name,$title);
         $this->migrations($name,$title);
 //        //将当前添加的权限添加给超级管理员
 //        $super_admin = Role::where('id', '=', 1)->firstOrFail(); //将输入角色匹配
@@ -83,6 +85,67 @@ class crud extends Command
 
         file_put_contents(base_path('routes/web.php'), $modelTemplate);
     }
+    /*---------------------     -转换Api-       ---------------------*/
+    protected function Api($name,$title)
+    {
+        $modelTemplate = str_replace(
+            [
+                '/*-*/',
+            ],
+            [
+                PHP_EOL.'   /*-----------------------------'.$title.'-----------------------------*/'.PHP_EOL.'   $api->resource(\'' . strtolower(Str::plural(Str::snake($name))) . "', '{$name}Controller', ['only' => ['index', 'store', 'update', 'destroy']]);".PHP_EOL.'/*-*/'
+            ],
+            file_get_contents(base_path('routes/api.php'))
+        );
+
+        file_put_contents(base_path('routes/api.php'), $modelTemplate);
+    }
+    /*---------------------     -转换Api-       ---------------------*/
+    protected function ApiJs($name,$title)
+    {
+        $name=strtolower(Str::plural(Str::snake($name)));
+        $modelTemplate = str_replace(
+            [
+                '/*-*/',
+            ],
+            [
+                PHP_EOL.'   /*-----------------------------'.$title.'-----------------------------*/'.PHP_EOL.
+                "'$name'".":{".PHP_EOL.
+                                "'list':'/api/$name', //$title"."列表 get".PHP_EOL.
+                                "'info':'/api/$name/:id',//$title.详情 get".PHP_EOL.
+                                "'create':'/api/$name',//$title.新增 post".PHP_EOL.
+                                "'update':'/api/$name/:id',//$title.修改 put".PHP_EOL.
+                                "'update':'/api/$name/:ids',//$title.删除 get".PHP_EOL.
+                "},".
+                '/*-*/'
+            ],
+            file_get_contents(public_path('js/api.js'))
+        );
+
+        file_put_contents(public_path('js/api.js'), $modelTemplate);
+    }
+    /*---------------------     -转换Js-       ---------------------*/
+    protected function Js($name,$title)
+    {
+        $controllerTemplate = str_replace(
+            [
+                '{{modelName}}',
+                '{{modelNamePluralLowerCase}}',
+                '{{modelNameSingularLowerCase}}',
+                '{{modelTitle}}'
+            ],
+            [
+                $name,
+                strtolower(Str::plural(Str::snake($name))),
+                strtolower(Str::snake($name)),
+                $title
+            ],
+            $this->getStub('js')
+        );
+        if (!file_exists($path = public_path('cctgd')))
+            mkdir($path, 0777, true);
+        file_put_contents(public_path("cctgd/".strtolower(Str::plural(Str::snake($name))).".js"), $controllerTemplate);
+    }
     /*---------------------     -转换Model-       ---------------------*/
     protected function model($name,$title)
     {
@@ -100,6 +163,28 @@ class crud extends Command
         if (!file_exists($path = app_path('Models')))
             mkdir($path, 0777, true);
         file_put_contents(app_path("Models/{$name}.php"), $modelTemplate);
+    }
+    /*---------------------     -转换ApiController-       ---------------------*/
+    protected function Apicontroller($name,$title)
+    {
+        $controllerTemplate = str_replace(
+            [
+                '{{modelName}}',
+                '{{modelNamePluralLowerCase}}',
+                '{{modelNameSingularLowerCase}}',
+                '{{modelTitle}}'
+            ],
+            [
+                $name,
+                strtolower(Str::plural(Str::snake($name))),
+                strtolower(Str::snake($name)),
+                $title
+            ],
+            $this->getStub('ApiController')
+        );
+        if (!file_exists($path = app_path('/Http/Controllers/Api')))
+            mkdir($path, 0777, true);
+        file_put_contents(app_path("/Http/Controllers/Api/{$name}Controller.php"), $controllerTemplate);
     }
     /*---------------------     -转换Controller-       ---------------------*/
     protected function controller($name,$title)

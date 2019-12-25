@@ -107,8 +107,5 @@
     </script>
 @endsection
 @section("js")
-    <script>
-        var CLASS="{{ route_class() }}";
-    </script>
-    <script src="{{ asset("cctgd/category.js") }}" charset="utf-8"></script>
+    <script src="{{ asset("cctgd/category.js") }}?v=123" charset="utf-8"></script>
  @endsection

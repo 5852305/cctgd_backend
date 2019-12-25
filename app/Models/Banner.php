@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-//{{modelTitle}}Model
-class {{modelName}} extends Model
+//轮播图Model
+class Banner extends Model
 {
 
    use SoftDeletes;

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class Create{{modelName}}Table extends Migration
+class CreateBannersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class Create{{modelName}}Table extends Migration
      */
     public function up()
     {
-        Schema::create('{{modelNamePluralLowerCase}}', function (Blueprint $table) {
+        Schema::create('banners', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamps();
             $table->softDeletes();
@@ -27,6 +27,6 @@ class Create{{modelName}}Table extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('{{modelNamePluralLowerCase}}');
+        Schema::dropIfExists('banners');
     }
 }
